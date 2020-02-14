@@ -1,18 +1,22 @@
 import numpy as np
-from utils import read_json, parse_args
+import utils
 from gubs import gubs
 
-c_max = 10
 
-args = parse_args()
-mdp = read_json(args.file_input)
-
-k_g = 0
-l = 0.1
+args = utils.parse_args()
+c_max = args.c_max
+l = args.lamb
+kg = args.kg
+mdp = utils.read_json(args.file_input)
 
 
 def u(c): return np.exp(-l * c)
 
 
-V = gubs(c_max, u, k_g, mdp)
+V = gubs(c_max, u, kg, mdp)
 print('V: ', V)
+
+if args.output:
+    output_file_path = utils.output({'V': V.tolist()})
+    if output_file_path:
+        print("Algorithm result written to ", output_file_path)
