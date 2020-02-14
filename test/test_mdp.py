@@ -14,7 +14,6 @@ def test_Q():
     def u(c): return np.exp(-l * c)
     k_g = 0
     V = gubs.initialize(C_max, u, k_g, env)
-    print("V: ", V)
     S = list(env.keys())
     V_i = {S[i]: i for i in range(len(S))}
 
