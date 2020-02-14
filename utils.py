@@ -7,7 +7,7 @@ def read_json(file_name):
         return json.load(json_data)
 
 
-DEFAULT_FILE_INPUT = './env-paper.json'
+DEFAULT_FILE_INPUT = './env1.json'
 
 
 def parse_args():
