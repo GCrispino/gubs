@@ -1,3 +1,13 @@
+def flatten(l):
+    return [x for l_i in l for x in l_i]
+
+
+def get_actions(mdp):
+    adjs = map(lambda s: s['Adj'], mdp.values())
+    actions = map(lambda s: list(s['A'].keys()), flatten(adjs))
+    return list(set(flatten(actions)))
+
+
 def find_reachable(s, a, mdp):
     """ Find states that are reachable from state 's' after executing action 'a' """
     all_reachable_from_s = mdp[s]['Adj']
