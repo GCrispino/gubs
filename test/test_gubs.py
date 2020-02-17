@@ -13,7 +13,7 @@ def test_initialize():
     def u(c): return np.exp(-l * c)
     k_g = 0
     env = read_json('env1-reduced.json')
-    V = gubs.initialize(C_max, u, k_g, env)
+    V, pi = gubs.initialize(C_max, u, k_g, env)
     np.testing.assert_array_equal(
         V[2], np.zeros(C_max + 2))
     np.testing.assert_almost_equal(
@@ -28,7 +28,7 @@ def test_initialize_2():
     def u(c): return np.exp(-l * c)
     k_g = 0
     env = read_json('env1-reduced.json')
-    V = gubs.initialize(C_max, u, k_g, env, c=2)
+    V, pi = gubs.initialize(C_max, u, k_g, env, c=2)
     np.testing.assert_array_equal(
         V[2], np.zeros(C_max + 3))
     np.testing.assert_almost_equal(

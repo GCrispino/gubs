@@ -13,10 +13,11 @@ mdp = utils.read_json(args.file_input)
 def u(c): return np.exp(-l * c)
 
 
-V = gubs(c_max, u, kg, mdp)
+V, pi = gubs(c_max, u, kg, mdp)
 print('V: ', V)
+print('pi: ', pi)
 
 if args.output:
-    output_file_path = utils.output({'V': V.tolist()})
+    output_file_path = utils.output({'V': V.tolist(), 'pi': pi.tolist()})
     if output_file_path:
         print("Algorithm result written to ", output_file_path)

@@ -13,7 +13,7 @@ def test_Q():
     l = 0.1
     def u(c): return np.exp(-l * c)
     k_g = 0
-    V = gubs.initialize(C_max, u, k_g, env)
+    V, pi = gubs.initialize(C_max, u, k_g, env)
     S = list(env.keys())
     V_i = {S[i]: i for i in range(len(S))}
 
