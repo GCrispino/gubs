@@ -2,6 +2,7 @@ import argparse
 import json
 import os
 import numpy as np
+from utils import output
 
 
 def create_state_obj(adjs, goal=False):
@@ -175,9 +176,4 @@ p = args.p
 
 env = create_env(nx, ny, p)
 
-if not os.path.isdir(args.dest_dir):
-    os.makedirs(args.dest_dir)
-output_file_path = os.path.join(
-    args.dest_dir, 'river%d-%d-%d.json' % (nx, ny, p * 100))
-with open(output_file_path, 'w') as fp:
-    json.dump(env, fp, indent=2)
+output('river%d-%d-%d.json' % (nx, ny, p * 100), env, args.dest_dir)

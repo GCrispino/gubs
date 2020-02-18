@@ -16,12 +16,13 @@ DEFAULT_OUTPUT = False
 DEFAULT_OUTPUT_DIR = "./output"
 
 
-def output(data, output_dir=DEFAULT_OUTPUT_DIR):
+def output(output_filename, data, output_dir=DEFAULT_OUTPUT_DIR):
     if not os.path.isdir(output_dir):
         os.makedirs(output_dir)
 
-    output_file_path = os.path.join(output_dir, str(
-        datetime.datetime.time(datetime.datetime.now()))) + '.json'
+    # output_file_path = os.path.join(output_dir, str(
+    #    datetime.datetime.time(datetime.datetime.now()))) + '.json'
+    output_file_path = os.path.join(output_dir, output_filename)
 
     with open(output_file_path, 'w') as fp:
         json.dump(data, fp, indent=2)

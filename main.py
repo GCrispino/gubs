@@ -1,3 +1,4 @@
+from datetime import datetime
 import numpy as np
 import utils
 from gubs import gubs
@@ -18,6 +19,8 @@ print('V: ', V)
 print('pi: ', pi)
 
 if args.output:
-    output_file_path = utils.output({'V': V.tolist(), 'pi': pi.tolist()})
+    output_filename = str(datetime.time(datetime.now())) + '.json'
+    output_file_path = utils.output(
+        output_filename, {'V': V.tolist(), 'pi': pi.tolist()})
     if output_file_path:
         print("Algorithm result written to ", output_file_path)
