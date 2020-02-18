@@ -1,3 +1,6 @@
+import argparse
+import json
+import os
 import numpy as np
 
 
@@ -151,3 +154,31 @@ def create_env(nx, ny, p):
     add_river_states(env, nx, ny, p)
     add_waterfall_states(env, nx, ny)
     return env
+
+
+DEFAULT_P = 0.4
+DEFAULT_NX = 7
+DEFAULT_NY = 10
+DEFAULT_DEST_DIR = '.'
+
+parser = argparse.ArgumentParser(
+    description='River problem generator'
+)
+parser.add_argument('-p', dest='p', default=DEFAULT_P)
+parser.add_argument('--nx', dest='nx', default=DEFAULT_NX)
+parser.add_argument('--ny', dest='ny', default=DEFAULT_NY)
+parser.add_argument('--dest_dir', dest='dest_dir', default=DEFAULT_DEST_DIR)
+
+args = parser.parse_args()
+nx = args.nx
+ny = args.ny
+p = args.p
+
+env = create_env(nx, ny, p)
+
+if not os.path.isdir(args.dest_dir):
+    os.makedirs(args.dest_dir)
+output_file_path = os.path.join(
+    args.dest_dir, 'river%d-%d-%d.json' % (nx, ny, p * 100))
+with open(output_file_path, 'w') as fp:
+    json.dump(env, fp, indent=2)
