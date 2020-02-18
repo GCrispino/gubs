@@ -70,7 +70,6 @@ def add_bridge_states(env, nx, ny):
     return env
 
 
-# TODO: Fix bank - Starting from 1 when it should start from nx + 1
 def add_bank_states(env, nx, ny):
     for i in range(1, ny - 1):
         cell_i_1 = str(i * nx + 1)
