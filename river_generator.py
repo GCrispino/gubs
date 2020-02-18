@@ -54,14 +54,14 @@ def add_bridge_states(env, nx, ny):
                     'name': str(i + nx),
                     'A': {'S': 1}
                 },
-                *[{
+                *([{
                     'name': str(i + 1),
                     'A': {'E': 1}
-                } if i != nx else {}],
-                *[{
+                }] if i != nx else []),
+                *([{
                     'name': str(i - 1),
                     'A': {'W': 1}
-                }if i != 1 else {}],
+                }] if i != 1 else []),
             ]
         }
     return env
