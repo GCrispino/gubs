@@ -57,17 +57,16 @@ def plot_arrow(action, i, row_size, plt):
     )
 
 
-# TODO
-#   - Print V values in plotting cells
-
-
-env_file_input = './env1.json'
+env_file_input = './river7-10-40.json'
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--env_file', dest='env_file',
                     default=env_file_input)
 
 parser.add_argument('--results_file', dest='results_file', required=True)
+parser.add_argument('--grid_width', dest='grid_width', required=True, type=int)
+parser.add_argument('--grid_height', dest='grid_height',
+                    required=True, type=int)
 args = parser.parse_args()
 
 timestamp = datetime.datetime.now().timestamp()
@@ -86,16 +85,16 @@ S = list(mdp_obj.keys())
 len_s = len(S)
 A = get_actions(mdp_obj)
 
-grid_height = 2
-grid_width = len_s
+grid_height = args.grid_height
+grid_width = args.grid_width
 
 # read pi and V from output file
 n_states = len(V)
-n_c = len(V[0])
+n_c = 1 if not type(V[0]) == np.ndarray else len(V[0])
 V = np.array(results_data['V']).T.reshape(n_c, 1,  n_states)
 pi = np.array(results_data['pi']).T.reshape(n_c, 1,  n_states)
 
-for i_c in range(n_c):
+for i_c in range(min(n_c, 10)):
     floor_v = V[i_c][0]
     plt.figure()
 
@@ -106,7 +105,8 @@ for i_c in range(n_c):
         plt.text(j % row_size, j // row_size,
                  "{0:.2f}".format(v))
         action = pi[i_c][0][j]
-        plot_arrow(action, j, row_size, plt)
+        if action:
+            plot_arrow(action, j, row_size, plt)
 
     plt.imshow(floor_v.reshape(grid_height, int(n_states / grid_height)))
     plt.title('C: ' + str(i_c))
