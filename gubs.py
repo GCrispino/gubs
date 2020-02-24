@@ -23,10 +23,18 @@ def initialize(C_max, u, k_g, mdp_obj, c=1):
     return V, pi
 
 
+def try_int(key):
+    try:
+        return int(key)
+    except:
+        return key
+
+
 def gubs(C_max, u, k_g, mdp_obj, c=1):
-    S = list(mdp_obj.keys())
+    S = sorted(mdp_obj.keys(), key=try_int)
     A = mdp.get_actions(mdp_obj)
     V_i = {S[i]: i for i in range(len(S))}
+    print("V_i: ", V_i)
     not_goal = [V_i[i] for i, s in mdp_obj.items() if not s['goal']]
 
     V, pi = initialize(C_max, u, k_g, mdp_obj, c)
