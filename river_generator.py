@@ -164,9 +164,9 @@ DEFAULT_DEST_DIR = '.'
 parser = argparse.ArgumentParser(
     description='River problem generator'
 )
-parser.add_argument('-p', dest='p', default=DEFAULT_P)
-parser.add_argument('--nx', dest='nx', default=DEFAULT_NX)
-parser.add_argument('--ny', dest='ny', default=DEFAULT_NY)
+parser.add_argument('-p', dest='p', default=DEFAULT_P, type=float)
+parser.add_argument('--nx', dest='nx', default=DEFAULT_NX, type=int)
+parser.add_argument('--ny', dest='ny', default=DEFAULT_NY, type=int)
 parser.add_argument('--dest_dir', dest='dest_dir', default=DEFAULT_DEST_DIR)
 
 args = parser.parse_args()
