@@ -74,13 +74,16 @@ def add_bridge_states(env, nx, ny):
 
 
 def add_bank_states(env, nx, ny):
-    for i in range(1, ny - 1):
-        cell_i_1 = str(i * nx + 1)
-        h1 = (ny - (i // nx)) + (nx - 1)
-        env[cell_i_1] = create_state_obj(get_bank_adj(cell_i_1, nx, ny), h1)
+    for i in range(1, ny):
+        if i < ny - 1:
+            cell_i_1 = str(i * nx + 1)
+            h1 = (ny - (int(cell_i_1) // nx)) + nx - 2
+            env[cell_i_1] = create_state_obj(
+                get_bank_adj(cell_i_1, nx, ny), h1)
         cell_i_2 = str((i + 1) * nx)
-        h2 = ny - (i // ny) - 2
+        h2 = ny - (int(cell_i_2) // nx)
         env[cell_i_2] = create_state_obj(get_bank_adj(cell_i_2, nx, ny), h2)
+
     goal_state_i = str(nx * ny)
     env[goal_state_i] = create_state_obj([
         {
@@ -103,7 +106,7 @@ def add_river_states(env, nx, ny, p):
             index = i * nx + j + 1
             env[str(index)] = {
                 'goal': False,
-                'heuristic': ny - i + nx - j,
+                'heuristic': nx - i + ny - j - 2,
                 'Adj': [
                     {
                         # goes down the river
@@ -139,7 +142,7 @@ def add_waterfall_states(env, nx, ny):
     for i in range(begin, end + 1):
         env[str(i)] = {
             'goal': False,
-            'heuristic': end - i,
+            'heuristic': end - i + 1,
             'Adj': [{
                 'name': str(i),
                 'A': {

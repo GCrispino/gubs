@@ -1,7 +1,6 @@
 import unittest
 import numpy as np
 import river_generator as rg
-from pprint import pprint
 
 tc = unittest.TestCase()
 
@@ -9,46 +8,218 @@ tc = unittest.TestCase()
 def test_river_create_env():
     nx = 4
     ny = 3
-    env = rg.create_env(nx, ny, 0.8)
-    pprint(env)
-
-    keys = env.keys()
-
-    # assert bridge keys
-    for i in range(1, nx + 1):
-        assert str(i) in keys
-        assert env[str(i)]['heuristic'] == ny + (nx - i) - 1
-
-    # assert bank keys
-    for i in range(1, ny - 1):
-        print('bank: ', (i * nx) + 1, (i * nx) + nx)
-        assert str((i * nx) + 1) in keys
-        assert env[str((i * nx) + 1)]['heuristic'] == nx + (ny - (i // ny) - 1)
-        assert str((i * nx) + nx) in keys
-        assert env[str((i * nx) + nx)]['heuristic'] == ny - (i // ny) - 2
-    assert str(nx * ny) in keys
-
-    # assert waterfall keys
-    begin = 1 + (ny - 1) * nx
-    end = nx * ny - 1
-    for i in range(begin, end + 1):
-        tc.assertDictEqual(env[str(i)], {
+    p = 0.8
+    env = rg.create_env(nx, ny, p)
+    expected = {
+        '1': {
             'goal': False,
-            'heuristic': (end - i),
-            'Adj': [{
-                'name': str(i),
-                'A': {
-                    'N': 1,
-                    'S': 1,
-                    'E': 1,
-                    'W': 1
+            'heuristic': 5,
+            'Adj': [
+                {
+                    'name': '1',
+                    'A': {'N': 1, 'W': 1}
+                },
+                {
+                    'name': '5',
+                    'A': {'S': 1}
+                },
+                {
+                    'name': '2',
+                    'A': {'E': 1}
                 }
-            }]
-        })
+            ]
+        },
+        '2': {
+            'goal': False,
+            'heuristic': 4,
+            'Adj': [
+                {
+                    'name': '2',
+                    'A': {'N': 1}
+                },
+                {
+                    'name': '6',
+                    'A': {'S': 1}
+                },
+                {
+                    'name': '3',
+                    'A': {'E': 1}
+                },
+                {
+                    'name': '1',
+                    'A': {'W': 1}
+                }
+            ]
+        },
+        '3': {
+            'goal': False,
+            'heuristic': 3,
+            'Adj': [
+                {
+                    'name': '3',
+                    'A': {'N': 1}
+                },
+                {
+                    'name': '7',
+                    'A': {'S': 1}
+                },
+                {
+                    'name': '4',
+                    'A': {'E': 1}
+                },
+                {
+                    'name': '2',
+                    'A': {'W': 1}
+                }
+            ]
+        },
+        '4': {
+            'goal': False,
+            'heuristic': 2,
+            'Adj': [
+                {
+                    'name': '4',
+                    'A': {'N': 1, 'E': 1}
+                },
+                {
+                    'name': '8',
+                    'A': {'S': 1}
+                },
+                {
+                    'name': '3',
+                    'A': {'W': 1}
+                }
+            ]
+        },
+        '5': {
+            'goal': False,
+            'heuristic': 4,
+            'Adj': [
+                {
+                    'name': '5',
+                    'A': {'W': 1}
+                },
+                {
+                    'name': '6',
+                    'A': {'E': 1}
+                },
+                {
+                    'name': '1',
+                    'A': {'N': 1}
+                },
+                {
+                    'name': '9',
+                    'A': {'S': 1}
+                }
+            ]
+        },
+        '6': {
+            'goal': False,
+            'heuristic': 3,
+            'Adj': [
+                {
+                    'name': '10',
+                    'A': {'N': p, 'S': 1, 'E': p, 'W': p}
+                },
+                {
+                    'name': '2',
+                    'A': {'N': 1 - p}
+                },
+                {
+                    'name': '7',
+                    'A': {'E': 1 - p}
+                },
+                {
+                    'name': '5',
+                    'A': {'W': 1 - p}
+                }
+            ]
+        },
+        '7': {
+            'goal': False,
+            'heuristic': 2,
+            'Adj': [
+                {
+                    'name': '11',
+                    'A': {'N': p, 'S': 1, 'E': p, 'W': p}
+                },
+                {
+                    'name': '3',
+                    'A': {'N': 1 - p}
+                },
+                {
+                    'name': '8',
+                    'A': {'E': 1 - p}
+                },
+                {
+                    'name': '6',
+                    'A': {'W': 1 - p}
+                }
+            ]
+        },
+        '8': {
+            'goal': False,
+            'heuristic': 1,
+            'Adj': [
+                {
+                    'name': '8',
+                    'A': {'E': 1}
+                },
+                {
+                    'name': '7',
+                    'A': {'W': 1}
+                },
+                {
+                    'name': '4',
+                    'A': {'N': 1}
+                },
+                {
+                    'name': '12',
+                    'A': {'S': 1}
+                }
+            ]
+        },
+        '9': {
+            'goal': False,
+            'heuristic': 3,
+            'Adj': [
+                {
+                    'name': '9',
+                    'A': {'N': 1, 'S': 1, 'E': 1, 'W': 1}
+                }
+            ]
+        },
+        '10': {
+            'goal': False,
+            'heuristic': 2,
+            'Adj': [
+                {
+                    'name': '10',
+                    'A': {'N': 1, 'S': 1, 'E': 1, 'W': 1}
+                }
+            ]
+        },
+        '11': {
+            'goal': False,
+            'heuristic': 1,
+            'Adj': [
+                {
+                    'name': '11',
+                    'A': {'N': 1, 'S': 1, 'E': 1, 'W': 1}
+                }
+            ]
+        },
+        '12': {
+            'goal': True,
+            'heuristic': 0,
+            'Adj': [
+                {
+                    'name': '12',
+                    'A': {'N': 1, 'S': 1, 'E': 1, 'W': 1}
+                }
+            ]
+        }
+    }
 
-    # assert river keys
-    for i in range(1, ny - 1):
-        for j in range(1, nx - 1):
-            k = str(i * nx + j + 1)
-            assert k in keys
-            assert env[k]['heuristic'] == ny - i + nx - j
+    tc.maxDiff = None
+    tc.assertDictEqual(env, expected)
