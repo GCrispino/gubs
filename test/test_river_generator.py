@@ -15,13 +15,17 @@ def test_river_create_env():
     keys = env.keys()
 
     # assert bridge keys
-    for i in range((ny - 1) * nx + 1, nx * ny):
+    for i in range(1, nx + 1):
         assert str(i) in keys
+        assert env[str(i)]['heuristic'] == ny + (nx - i) - 1
 
     # assert bank keys
     for i in range(1, ny - 1):
+        print('bank: ', (i * nx) + 1, (i * nx) + nx)
         assert str((i * nx) + 1) in keys
-        assert str((i * 1) + nx) in keys
+        assert env[str((i * nx) + 1)]['heuristic'] == nx + (ny - (i // ny) - 1)
+        assert str((i * nx) + nx) in keys
+        assert env[str((i * nx) + nx)]['heuristic'] == ny - (i // ny) - 2
     assert str(nx * ny) in keys
 
     # assert waterfall keys
@@ -30,6 +34,7 @@ def test_river_create_env():
     for i in range(begin, end + 1):
         tc.assertDictEqual(env[str(i)], {
             'goal': False,
+            'heuristic': (end - i),
             'Adj': [{
                 'name': str(i),
                 'A': {
@@ -43,5 +48,7 @@ def test_river_create_env():
 
     # assert river keys
     for i in range(1, ny - 1):
-        for j in range(nx - 1):
-            assert str(i * nx + j + 1) in keys
+        for j in range(1, nx - 1):
+            k = str(i * nx + j + 1)
+            assert k in keys
+            assert env[k]['heuristic'] == ny - i + nx - j
