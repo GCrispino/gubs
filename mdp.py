@@ -22,4 +22,4 @@ def Q(s, C, a, u, V, V_i, mdp, c=1):
     c_ = 0 if mdp[s]['goal'] else c
     s_a_cost = u(C + c_) - u(C)
     return s_a_cost + sum([
-        V[V_i[s_['name']], C + c] * s_['A'][a] for s_ in reachable])
+        V[V_i[s_['name']], C + c_] * s_['A'][a] for s_ in reachable])

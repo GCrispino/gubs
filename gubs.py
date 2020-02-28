@@ -3,9 +3,7 @@ import itertools
 import mdp
 
 
-def initialize(C_max, u, k_g, mdp_obj, c=1):
-    S = list(mdp_obj.keys())
-    V_i = {S[i]: i for i in range(len(S))}
+def initialize(C_max, u, k_g, mdp_obj, V_i, S, c=1):
     G = [V_i[i] for i, s in mdp_obj.items() if s['goal']]
     not_goal = [V_i[i] for i, s in mdp_obj.items() if not s['goal']]
     n_states = len(G) + len(not_goal)
@@ -23,27 +21,17 @@ def initialize(C_max, u, k_g, mdp_obj, c=1):
     return V, pi
 
 
-def try_int(key):
-    try:
-        return int(key)
-    except:
-        return key
-
-
-def gubs(C_max, u, k_g, mdp_obj, c=1):
-    S = sorted(mdp_obj.keys(), key=try_int)
+def gubs(C_max, u, k_g, mdp_obj, V_i, S, c=1):
     A = mdp.get_actions(mdp_obj)
-    V_i = {S[i]: i for i in range(len(S))}
-    print("V_i: ", V_i)
     not_goal = [V_i[i] for i, s in mdp_obj.items() if not s['goal']]
 
-    V, pi = initialize(C_max, u, k_g, mdp_obj, c)
+    V, pi = initialize(C_max, u, k_g, mdp_obj, V_i, S, c)
     for C in reversed(range(C_max)):
         for s in S:
             actions_results = np.array(
                 [mdp.Q(s, C, a, u, V, V_i, mdp_obj, c) for a in A])
             i_max = np.argmax(actions_results)
-            pi[V_i[s]] = A[i_max]
+            pi[V_i[s], C] = A[i_max]
             V[V_i[s], C] = actions_results[i_max]
 
     return V, pi
