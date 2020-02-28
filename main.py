@@ -11,6 +11,14 @@ def try_int(key):
         return key
 
 
+def get_output_file_name(V, args):
+    iso_date = datetime.isoformat(datetime.today())
+    n_states = V.shape[0]
+    file_name = f'{n_states}_{args.c_max}_{(args.lamb* 100):.0f}_{(args.kg * 100):.0f}_{iso_date}.json'
+
+    return file_name
+
+
 args = utils.parse_args()
 c_max = args.c_max
 l = args.lamb
@@ -26,10 +34,9 @@ V_i = {S[i]: i for i in range(len(S))}
 V, pi = gubs(c_max, u, kg, mdp, V_i, S)
 print('V: ', V)
 print('pi: ', pi)
-V_ = np.array(V)
 
 if args.output:
-    output_filename = str(datetime.time(datetime.now())) + '.json'
+    output_filename = get_output_file_name(V, args)
     output_file_path = utils.output(
         output_filename, {'V': V.tolist(), 'pi': pi.tolist()})
     if output_file_path:
