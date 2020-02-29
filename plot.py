@@ -62,11 +62,8 @@ def get_output_file_name(args, n_c):
     return f'{args.grid_width}_{args.grid_height}_{n_c}_{timestamp}.pdf'
 
 
-env_file_input = './river7-10-40.json'
-
 parser = argparse.ArgumentParser()
-parser.add_argument('--env_file', dest='env_file',
-                    default=env_file_input)
+parser.add_argument('--env_file', dest='env_file', required=True)
 
 parser.add_argument('--results_file', dest='results_file', required=True)
 parser.add_argument('--grid_width', dest='grid_width', required=True, type=int)
