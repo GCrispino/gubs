@@ -57,6 +57,11 @@ def plot_arrow(action, i, row_size, plt):
     )
 
 
+def get_output_file_name(args, n_c):
+    timestamp = datetime.datetime.now().timestamp()
+    return f'{args.grid_width}_{args.grid_height}_{n_c}_{timestamp}.pdf'
+
+
 env_file_input = './river7-10-40.json'
 
 parser = argparse.ArgumentParser()
@@ -69,13 +74,10 @@ parser.add_argument('--grid_height', dest='grid_height',
                     required=True, type=int)
 args = parser.parse_args()
 
-timestamp = datetime.datetime.now().timestamp()
 
 output_dir = 'results'
 if not os.path.isdir(output_dir):
     os.makedirs(output_dir)
-
-pp = PdfPages(output_dir + '/result' + str(timestamp) + '.pdf')
 
 mdp_obj = read_json(args.env_file)
 results_data = read_json(args.results_file)
@@ -93,6 +95,9 @@ n_states = len(V)
 n_c = 1 if not type(V[0]) == np.ndarray else len(V[0])
 V = np.array(results_data['V']).T.reshape(n_c, 1,  n_states)
 pi = np.array(results_data['pi']).T.reshape(n_c, 1,  n_states)
+
+output_filename = get_output_file_name(args, n_c)
+pp = PdfPages(output_dir + '/result' + output_filename)
 
 for i_c in range(min(n_c, 10)):
     floor_v = V[i_c][0]
