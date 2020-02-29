@@ -80,8 +80,6 @@ mdp_obj = read_json(args.env_file)
 results_data = read_json(args.results_file)
 V = np.array(results_data['V'])
 
-S = list(mdp_obj.keys())
-len_s = len(S)
 A = get_actions(mdp_obj)
 
 grid_height = args.grid_height
