@@ -36,7 +36,7 @@ V, pi = gubs(c_max, u, kg, mdp, V_i, S)
 P = get_probabilities(V_i, V, pi, S, mdp, epsilon=1e-3)
 print('V: ', V)
 print('pi: ', pi)
-print('P: ', json.dumps(P.tolist()))
+print('P: ', P.tolist())
 
 
 if args.output:
