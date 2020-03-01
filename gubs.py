@@ -23,7 +23,6 @@ def initialize(C_max, u, k_g, mdp_obj, V_i, S, c=1):
 
 def gubs(C_max, u, k_g, mdp_obj, V_i, S, c=1):
     A = mdp.get_actions(mdp_obj)
-    not_goal = [V_i[i] for i, s in mdp_obj.items() if not s['goal']]
 
     V, pi = initialize(C_max, u, k_g, mdp_obj, V_i, S, c)
     for C in reversed(range(C_max)):
