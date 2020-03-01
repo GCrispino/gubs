@@ -32,12 +32,15 @@ def u(c): return np.exp(-l * c)
 S = sorted(mdp.keys(), key=try_int)
 V_i = {S[i]: i for i in range(len(S))}
 V, pi = gubs(c_max, u, kg, mdp, V_i, S)
+P = get_probabilities(V_i, V, pi, S, mdp, epsilon=1e-3)
 print('V: ', V)
 print('pi: ', pi)
+print('P: ', json.dumps(P.tolist()))
+
 
 if args.output:
     output_filename = get_output_file_name(V, args)
     output_file_path = utils.output(
-        output_filename, {'V': V.tolist(), 'pi': pi.tolist()})
+        output_filename, {'V': V.tolist(), 'pi': pi.tolist(), 'P': P.tolist()})
     if output_file_path:
         print("Algorithm result written to ", output_file_path)
