@@ -1,4 +1,5 @@
 import numpy as np
+from numpy.linalg import norm
 import itertools
 import mdp
 
@@ -34,3 +35,73 @@ def gubs(C_max, u, k_g, mdp_obj, V_i, S, c=1):
             V[V_i[s], C] = actions_results[i_max]
 
     return V, pi
+
+
+def risk_sensitive(lamb, mdp_obj, V_i, S, c=1, epsilon=1e-3):
+    def u(c): return np.exp(lamb * c)
+
+    G = [V_i[i] for i, s in mdp_obj.items() if s['goal']]
+    not_goal = [i for i, s in mdp_obj.items() if not s['goal']]
+    n_states = len(S)
+
+    # initialize
+    V = np.zeros(n_states, dtype=float)
+    pi = np.full(n_states, None)
+    P = np.zeros(n_states, dtype=float)
+    V[G] = -np.sign(lamb)
+    P[G] = 1
+    A = np.array(mdp.get_actions(mdp_obj))
+
+    i = 0
+
+    P_not_max_prob = np.copy(P)
+    while True:
+        V_ = np.copy(V)
+        P_ = np.copy(P)
+        for s in not_goal:
+            actions_results_p = np.array([
+                np.sum([
+                    P[V_i[s_['name']]] * s_['A'][a] for s_ in mdp.find_reachable(s, a, mdp_obj)
+                ]) for a in A
+            ])
+
+            # set maxprob
+            max_prob = np.max(actions_results_p)
+            P_[V_i[s]] = max_prob
+            A_max_prob = A[actions_results_p == max_prob]
+            A_not_max_prob = A[actions_results_p != max_prob]
+            not_max_prob_actions_results = np.array([
+                np.sum([
+                    P[V_i[s_['name']]] * s_['A'][a] for s_ in mdp.find_reachable(s, a, mdp_obj)
+                ]) for a in A_not_max_prob
+            ])
+
+            # record maxprob obtained by actions that are in A_not_max_prob
+            P_not_max_prob[V_i[s]] = P[V_i[s]] if len(not_max_prob_actions_results) == 0 else np.max(
+                not_max_prob_actions_results)
+
+            actions_results = np.array([
+                np.sum([
+                    V[V_i[s_['name']]] * s_['A'][a] for s_ in mdp.find_reachable(s, a, mdp_obj)
+                ]) for a in A_max_prob
+            ])
+
+            i_a = np.argmax(actions_results)
+            V_[V_i[s]] = u(c) * actions_results[i_a]
+            pi[V_i[s]] = A_max_prob[i_a]
+
+        v_norm = norm(V_ - V, np.inf)
+        p_norm = norm(P_ - P, np.inf)
+
+        P_diff = P_ - P_not_max_prob
+        arg_min_p_diff = np.argmin(P_diff)
+        min_p_diff = P_diff[arg_min_p_diff]
+
+        if v_norm + p_norm < epsilon and min_p_diff >= 0:
+            break
+        V = V_
+        P = P_
+        i += 1
+
+    print(f'{i} iterations')
+    return V, P, pi
