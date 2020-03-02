@@ -36,8 +36,7 @@ def get_probabilities(V_i, V, pi, S, mdp, epsilon=1e-3):
     while True:
         P_ = np.array(P)
         for s in S:
-            reward = 1 if mdp[s]['goal'] else 0
-            if reward == 1:
+            if mdp[s]['goal']:
                 continue
             a = pi[V_i[s], 0]
             reachable = find_reachable(s, a, mdp)
