@@ -37,6 +37,9 @@ def gubs(C_max, u, k_g, mdp_obj, V_i, S, c=1):
     return V, pi
 
 
+def u(lamb, c): return np.exp(lamb * c)
+
+
 def risk_sensitive(lamb, mdp_obj, V_i, S, c=1, epsilon=1e-3):
     def u(c): return np.exp(lamb * c)
 
@@ -105,3 +108,44 @@ def risk_sensitive(lamb, mdp_obj, V_i, S, c=1, epsilon=1e-3):
 
     print(f'{i} iterations')
     return V, P, pi
+
+
+def get_X(V, V_i, lamb, S, A, mdp_obj, c=1):
+    for (s, a) in itertools.product(S, A):
+        reachable = mdp.find_reachable(s, a, mdp_obj)
+
+    gen_X = [((s, a), (V[V_i[s]] - np.sum(
+        np.fromiter(
+            (s_['A'][a] * u(lamb, c) * V[V_i[s_['name']]]
+             for s_ in mdp.find_reachable(s, a, mdp_obj)), dtype=float))))
+             for (s, a) in itertools.product(S, A)]
+
+    X = np.array(gen_X)
+
+    return X[X.T[1] < 0].T[0]
+
+
+def get_cmax(V, V_i, P, S, A, lamb, k_g, mdp_obj, c=1):
+    X = get_X(V, V_i, lamb, S, A, mdp_obj)
+    W = np.zeros(len(X))
+
+    for i, (s, a) in enumerate(X):
+        numerator_sum = np.sum(
+            np.fromiter(
+                (s_['A'][a] * u(lamb, c) * V[V_i[s_['name']]]
+                 for s_ in mdp.find_reachable(s, a, mdp_obj)), dtype=float))
+        numerator = V[V_i[s]] - numerator_sum
+
+        # denominator = k_g * np.sum(np.fromiter((s_['A'][a] * P[V_i[s_['name']]]
+        #                                        for s_ in mdp.find_reachable(s, a, mdp_obj)), dtype=float))
+        # Alternate way
+        denominator = k_g * np.sum(np.fromiter((s_['A'][a] * P[V_i[s_['name']]]
+                                                for s_ in mdp.find_reachable(s, a, mdp_obj)), dtype=float)) - P[V_i[s]]
+        if denominator == 0:
+            W[i] = -np.inf
+        else:
+            W[i] = -(1 / lamb) * np.log(
+                numerator / denominator
+            )
+
+    return np.max(W)
