@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 import mdp
 import gubs
-from utils import read_json
+from utils import read_json, try_int
 
 tc = unittest.TestCase()
 env = read_json('env1-reduced.json')
@@ -13,14 +13,18 @@ def test_Q():
     l = 0.1
     def u(c): return np.exp(-l * c)
     k_g = 0
-    V, pi = gubs.initialize(C_max, u, k_g, env)
+    S = sorted(env.keys(), key=try_int)
+    V_i = {S[i]: i for i in range(len(S))}
+    V, pi = gubs.initialize(C_max, u, k_g, env, V_i, S)
     S = list(env.keys())
     V_i = {S[i]: i for i in range(len(S))}
+    print('V:', V)
 
     # run Q() for C=C_max
     q1N = mdp.Q('1', C_max, 'N', u, V, V_i, env)
     q1S = mdp.Q('1', C_max, 'S', u, V, V_i, env)
     q1E = mdp.Q('1', C_max, 'E', u, V, V_i, env)
+    print(q1N, q1S, q1E)
 
     q2N = mdp.Q('2', C_max, 'N', u, V, V_i, env)
     q2S = mdp.Q('2', C_max, 'S', u, V, V_i, env)

@@ -8,6 +8,13 @@ def read_json(file_name):
         return json.load(json_data)
 
 
+def try_int(key):
+    try:
+        return int(key)
+    except:
+        return key
+
+
 DEFAULT_FILE_INPUT = './env1.json'
 DEFAULT_KG = 0
 DEFAULT_LAMBDA = 0.1
