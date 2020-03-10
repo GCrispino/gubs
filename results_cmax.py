@@ -6,8 +6,8 @@ import mdp
 
 nx = 5
 ny = 8
-p = 80
-file_input = f'./river{nx}-{ny}-{p}-1-alt.json'
+p = 40
+file_input = f'./river{nx}-{ny}-{p}-2.json'
 #file_input = './env1-reduced.json'
 mdp_obj = read_json(file_input)
 S = sorted(mdp_obj.keys(), key=int)
