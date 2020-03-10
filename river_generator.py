@@ -17,14 +17,14 @@ def create_state_obj(adjs, heuristic, goal=False, river_type=0):
 def get_bank_adj(i, nx, ny, river_type=0):
     prob = 1 if river_type == 0 else 0.99
     return [
-        { # top bank state (left or right)
-          # TODO - add case for right bank and north action that agent can stay in the same place
+        {  # top bank state (left or right)
             'name': i,
             'A': {
-                **({'E': prob} if int(i) % nx == 0 else {'W': prob})
+                **({'E': prob} if int(i) % nx == 0 else {'W': prob}),
+                **({'N': 1 - prob} if river_type == 2 else {})
             }
         },
-        *([{ # Left bank
+        *([{  # Left bank
             'name': str(int(i) + 1),
             'A': {'E': 1, } if river_type == 0 else {
                 'N': 1 - prob,
@@ -36,22 +36,26 @@ def get_bank_adj(i, nx, ny, river_type=0):
                 'E': 1
             }
         }] if int(i) % nx != 0 else []),
-        *([{ # Right bank
+        *([{  # Right bank
             'name': str(int(i) - 1),
-            'A': {'W': 1} if river_type == 0 or river_type == 2 else {
+            'A': {'W': 1} if river_type in (0, 2) else {
                 'N': 1 - prob,
                 'S': 1 - prob,
                 'E': 1 - prob,
                 'W': 1
             }
         }] if int(i) % nx == 0 else []),
-        { # State at north 
+        {  # State at north
             'name': str(int(i) - nx),
             'A': {'N': prob}
         },
-        { # State at south
+        {  # State at south
             'name': str(int(i) + nx),
-            'A': {'S': prob}
+            'A': {
+                'S': prob
+                if river_type in (0, 1)
+                else 1
+            }
         }
 
     ]
