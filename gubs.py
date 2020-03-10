@@ -78,13 +78,6 @@ def risk_sensitive(lamb, mdp_obj, V_i, S, c=1, epsilon=1e-3, n_iter=None):
                     P[V_i[s_['name']]] * s_['A'][a] for s_ in mdp.find_reachable(s, a, mdp_obj)
                 ]) for a in A_not_max_prob
             ])
-            # print('A_max_prob:', A_max_prob)
-            # print('A_not_max_prob:', A_not_max_prob)
-            # print('not_max_prob_actions_results:', list(
-            #    zip(A, not_max_prob_actions_results)))
-            # print('A_max_prob:', A_max_prob)
-            # print('A_not_max_prob:', A_not_max_prob)
-            # print()
 
             # record maxprob obtained by actions that are in A_not_max_prob
             P_not_max_prob[V_i[s]] = P[V_i[s]] if len(not_max_prob_actions_results) == 0 else np.max(
@@ -95,14 +88,6 @@ def risk_sensitive(lamb, mdp_obj, V_i, S, c=1, epsilon=1e-3, n_iter=None):
                     u(c) * V[V_i[s_['name']]] * s_['A'][a] for s_ in mdp.find_reachable(s, a, mdp_obj)
                 ]) for a in A_max_prob
             ])
-            print('s:', s)
-            print('actions_results:', list(zip(A_max_prob, actions_results)))
-            print('actions_results_p:', list(zip(A, actions_results_p)))
-            print('not_max_prob_actions_results:', list(
-                zip(A_not_max_prob, not_max_prob_actions_results)))
-            print('A_max_prob:', A_max_prob)
-            print('A_not_max_prob:', A_not_max_prob)
-            print()
 
             i_a = np.argmax(actions_results)
             V_[V_i[s]] = actions_results[i_a]
@@ -113,19 +98,7 @@ def risk_sensitive(lamb, mdp_obj, V_i, S, c=1, epsilon=1e-3, n_iter=None):
 
         P_diff = P_ - P_not_max_prob
         arg_min_p_diff = np.argmin(P_diff)
-        # print("p_diff")
-        # print(P_diff)
-        # print("end pdiff")
         min_p_diff = P_diff[arg_min_p_diff]
-        print('min_p_diff:', min_p_diff)
-        print('v_norm:', v_norm)
-        print('p_norm:', p_norm)
-        print("V:", V_.reshape(5, 8))
-        print("pi:", pi.reshape(5, 8))
-        print("P:", P_.reshape(5, 8))
-        print("P_not_max_prob:", P_not_max_prob.reshape(5, 8))
-        print("P_diff:", P_diff.reshape(5, 8))
-        print()
 
         if n_iter and i == n_iter:
             break
@@ -139,11 +112,9 @@ def risk_sensitive(lamb, mdp_obj, V_i, S, c=1, epsilon=1e-3, n_iter=None):
     return V, P, pi
 
 
-# TODO
-#   Filtrar por numerador negativo e denominador negativo também
 def get_X(V, V_i, lamb, S, A, mdp_obj, c=1):
 
-    gen_X = [
+    list_X = [
         (
             (s, a),
             (V[V_i[s]] - np.sum(
@@ -155,22 +126,16 @@ def get_X(V, V_i, lamb, S, A, mdp_obj, c=1):
         for (s, a) in itertools.product(S, A)
     ]
 
-    X = np.array(gen_X)
+    X = np.array(list_X)
 
-    # return X.T[0]
     return X[X.T[1] < 0]
 
 
 def get_cmax(V, V_i, P, S, A, lamb, k_g, mdp_obj, c=1):
     X = get_X(V, V_i, lamb, S, A, mdp_obj)
-    print('X:', X)
     W = np.zeros(len(X))
 
     for i, ((s, a), x) in enumerate(X):
-
-        # denominator = k_g * np.sum(np.fromiter((s_['A'][a] * P[V_i[s_['name']]]
-        #                                        for s_ in mdp.find_reachable(s, a, mdp_obj)), dtype=float))
-        # Alternate way
         denominator = k_g * np.sum(np.fromiter((s_['A'][a] * P[V_i[s_['name']]]
                                                 for s_ in mdp.find_reachable(s, a, mdp_obj)), dtype=float)) - P[V_i[s]]
         if denominator == 0:
@@ -179,13 +144,5 @@ def get_cmax(V, V_i, P, S, A, lamb, k_g, mdp_obj, c=1):
             W[i] = -(1 / lamb) * np.log(
                 x / denominator
             )
-        print()
-        print('numerator:', x)
-        print('denominator:', denominator)
-        print('W[i]:', W[i])
-        print()
 
-    # print('all W:')
-    # print(W)
-    # print('end W')
     return np.max(W[np.invert(np.isnan(W))])
