@@ -61,7 +61,7 @@ def get_bank_adj(i, nx, ny, river_type=0):
     ]
 
 
-def add_bridge_states(env, nx, ny):
+def add_bridge_states(env, nx, ny, river_type=0):
     for i in range(1, nx + 1):
         env[str(i)] = {
             'goal': False,
@@ -81,7 +81,7 @@ def add_bridge_states(env, nx, ny):
                 },
                 *([{
                     'name': str(i + 1),
-                    'A': {'E': 1}
+                    'A': {'E': 1, **({'N': 0.01} if river_type == 2 else {})}
                 }] if i != nx else []),
                 *([{
                     'name': str(i - 1),
