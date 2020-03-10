@@ -20,13 +20,21 @@ def get_bank_adj(i, nx, ny, river_type=0):
         {  # top bank state (left or right)
             'name': i,
             'A': {
-                **({'E': prob} if int(i) % nx == 0 else {'W': prob}),
-                **({'N': 1 - prob} if river_type == 2 else {})
+                **(
+                    {  # Right
+                        'E': prob if river_type in (0, 1) else 1,
+                        **({'N': 1 - prob} if river_type == 2 else {})
+                    }
+                    if int(i) % nx == 0
+                    else {  # Left
+                        'W': prob if river_type in (0, 1) else 1
+                    }
+                ),
             }
         },
         *([{  # Left bank
             'name': str(int(i) + 1),
-            'A': {'E': 1, } if river_type == 0 else {
+            'A': {'E': 1} if river_type == 0 else {
                 'N': 1 - prob,
                 'S': 1 - prob,
                 'E': 1,
@@ -70,7 +78,7 @@ def add_bridge_states(env, nx, ny, river_type=0):
                 {
                     'name': str(i),
                     'A': {
-                        'N': 1,
+                        'N': 0.99 if river_type == 2 and i != nx else 1,
                         **({'W': 1} if i == 1 else {}),
                         ** ({'E': 1} if i == nx else {})
                     }
@@ -135,9 +143,9 @@ def add_river_states(env, nx, ny, p, river_type=0):
                         'name': str(index),
                         'A': {
                             'N': stays_prob,
-                            'S': stays_prob,
-                            'E': stays_prob,
-                            'W': stays_prob
+                            **({} if river_type == 2 else {'S': stays_prob}),
+                            'E': stays_prob / 2,
+                            'W': stays_prob / 2
                         }
                     }]),
                     {
@@ -145,11 +153,21 @@ def add_river_states(env, nx, ny, p, river_type=0):
                         'name': str(index + nx),
                         'A': {
                             'N': river_prob,
-                            'S': 1 if river_type == 0 else river_prob + success_prob,
+                            'S': 1,
                             'E': river_prob,
                             'W': river_prob
                         }
                     },
+                    *([{
+                        # goes down the river and to the right
+                        'name': str(index + nx + 1),
+                        'A': {'E': stays_prob / 2}
+                    }] if river_type == 2 else []),
+                    *([{
+                        # goes down the river and to the left
+                        'name': str(index + nx - 1),
+                        'A': {'W': stays_prob / 2}
+                    }] if river_type == 2 else []),
                     {
                         'name': str(index - nx),
                         'A': {'N': success_prob}
@@ -190,7 +208,7 @@ def add_waterfall_states(env, nx, ny, river_type=0):
 
 def create_env(nx, ny, p, river_type=0):
     env = {}
-    add_bridge_states(env, nx, ny)
+    add_bridge_states(env, nx, ny, river_type)
     add_bank_states(env, nx, ny, river_type)
     add_river_states(env, nx, ny, p, river_type)
     add_waterfall_states(env, nx, ny)
@@ -211,7 +229,7 @@ parser.add_argument('--nx', dest='nx', default=DEFAULT_NX, type=int)
 parser.add_argument('--ny', dest='ny', default=DEFAULT_NY, type=int)
 parser.add_argument('--dest_dir', dest='dest_dir', default=DEFAULT_DEST_DIR)
 parser.add_argument('--type', dest='type',
-                    choices=['0', '1'], default=DEFAULT_TYPE)
+                    choices=['0', '1', '2'], default=DEFAULT_TYPE)
 
 args = parser.parse_args()
 nx = args.nx
