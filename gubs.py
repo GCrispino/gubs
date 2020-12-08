@@ -26,7 +26,7 @@ def gubs(C_max, u, k_g, mdp_obj, V_i, S, c=1):
     A = mdp.get_actions(mdp_obj)
 
     V, pi = initialize(C_max, u, k_g, mdp_obj, V_i, S, c)
-    for C in reversed(range(C_max)):
+    for C in reversed(range(C_max + 1)):
         for s in S:
             actions_results = np.array(
                 [mdp.Q(s, C, a, u, V, V_i, mdp_obj, c) for a in A])
@@ -35,6 +35,31 @@ def gubs(C_max, u, k_g, mdp_obj, V_i, S, c=1):
             V[V_i[s], C] = actions_results[i_max]
 
     return V, pi
+
+
+def finite_gubs(S, A, C_max, V_i, H, mdp_obj, k_g, u, c=1):
+    n_states = len(S)
+    n_actions = len(A)
+    G = [V_i[i] for i, s in mdp_obj.items() if s['goal']]
+    not_goal = [V_i[i] for i, s in mdp_obj.items() if not s['goal']]
+    Q = np.zeros((n_states, C_max + c + 1, n_actions, H + 1))
+    pi = np.full((n_states, C_max + c + 1, H + 1), None)
+    # for i_a, _ in enumerate(A):
+    #    Q[not_goal, :, i_a, H] = u(np.arange(C_max + c + 1)) - 1
+    Q[G] = k_g
+
+    for h in reversed(range(H)):
+        for C in reversed(range(C_max + 1)):
+            for s in S:
+                i_s = V_i[s]
+                for i_a, a in enumerate(A):
+                    reachable = mdp.find_reachable(s, a, mdp_obj)
+                    c_ = 0 if mdp_obj[s]['goal'] else c
+                    s_a_cost = u(C + c_) - u(C)
+                    Q[i_s, C, i_a, h] = s_a_cost + sum([
+                        np.max(Q[V_i[s_['name']], C + c_, :, h + 1]) * s_['A'][a] for s_ in reachable])
+                pi[i_s, C, h] = A[np.argmax(Q[i_s, C, :, h])]
+    return Q, pi
 
 
 def u(lamb, c): return np.exp(lamb * c)
@@ -79,6 +104,8 @@ def risk_sensitive(lamb, mdp_obj, V_i, S, c=1, epsilon=1e-3, n_iter=None):
                 ]) for a in A_not_max_prob
             ])
 
+            # TODO -> Ajeitar esse cálculo abaixo, ta dando 0 sempre em alguns casos.
+            #           - Talvez não esteja pegando as ações que não são maxprob corretamente
             # record maxprob obtained by actions that are in A_not_max_prob
             P_not_max_prob[V_i[s]] = P[V_i[s]] if len(not_max_prob_actions_results) == 0 else np.max(
                 not_max_prob_actions_results)
@@ -90,6 +117,17 @@ def risk_sensitive(lamb, mdp_obj, V_i, S, c=1, epsilon=1e-3, n_iter=None):
             ])
 
             i_a = np.argmax(actions_results)
+            if s == '6':
+                print('EITA')
+                print(' ', actions_results_p)
+                print(' ', A_max_prob, i_a, A_max_prob[i_a])
+                print(' ', actions_results, actions_results[i_a])
+            if s == '43':
+                print('EITA2')
+                print(' ', actions_results_p)
+            if s == '42':
+                print('EITA3')
+                print(' ', actions_results_p)
             V_[V_i[s]] = actions_results[i_a]
             pi[V_i[s]] = A_max_prob[i_a]
 
@@ -102,6 +140,9 @@ def risk_sensitive(lamb, mdp_obj, V_i, S, c=1, epsilon=1e-3, n_iter=None):
 
         if n_iter and i == n_iter:
             break
+        #print('delta1:', v_norm, p_norm, v_norm + p_norm)
+        #print('prob:', P, P_)
+        #print('delta2:', P_diff, min_p_diff)
         if v_norm + p_norm < epsilon and min_p_diff >= 0:
             break
         V = V_
