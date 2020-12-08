@@ -10,7 +10,7 @@ def initialize(C_max, u, k_g, mdp_obj, V_i, S, c=1):
     n_states = len(G) + len(not_goal)
 
     C = np.arange(c + 1) + C_max
-    V = np.full((n_states, C_max + c + 1), -1.0)
+    V = np.full((n_states, C_max + c + 1), 0.0)
     pi = np.full((n_states, C_max + c + 1), None)
     V[G] = k_g
     not_goal_and_C = np.array([[i, j]
@@ -133,16 +133,106 @@ def get_X(V, V_i, lamb, S, A, mdp_obj, c=1):
 
 def get_cmax(V, V_i, P, S, A, lamb, k_g, mdp_obj, c=1):
     X = get_X(V, V_i, lamb, S, A, mdp_obj)
+    # print("X:", X)
     W = np.zeros(len(X))
 
     for i, ((s, a), x) in enumerate(X):
-        denominator = k_g * np.sum(np.fromiter((s_['A'][a] * P[V_i[s_['name']]]
-                                                for s_ in mdp.find_reachable(s, a, mdp_obj)), dtype=float)) - P[V_i[s]]
+        # print('oi, ', s, a, x, P[V_i[s]], np.fromiter((s_['A'][a] * P[V_i[s_['name']]]
+        #                                               for s_ in mdp.find_reachable(s, a, mdp_obj)), dtype=float), np.sum(np.fromiter((s_['A'][a] * P[V_i[s_['name']]]
+        #                                                                                                                               for s_ in mdp.find_reachable(s, a, mdp_obj)), dtype=float)))
+        denominator = k_g * (np.sum(np.fromiter((s_['A'][a] * P[V_i[s_['name']]]
+                                                 for s_ in mdp.find_reachable(s, a, mdp_obj)), dtype=float)) - P[V_i[s]])
         if denominator == 0:
             W[i] = -np.inf
         else:
+            # print('calc: ', -(1 / lamb), denominator, x /
+            #      denominator, np.log(x / denominator))
             W[i] = -(1 / lamb) * np.log(
                 x / denominator
             )
 
-    return np.max(W[np.invert(np.isnan(W))])
+    print("W[s]:", [((s, a), W[i]) for i, ((s, a), x) in enumerate(X)])
+    try:
+        C_max = np.max(W[np.invert(np.isnan(W))])
+    except:
+        return 0
+    if C_max < 0 or C_max == np.inf:
+        return 0
+
+    return int(np.ceil(C_max))
+
+
+def exact_gubs(V_risk, P_risk, pi_risk, C_max, lamb, k_g, mdp_obj, V_i, S, A, c=1):
+    G = [V_i[i] for i, s in mdp_obj.items() if s['goal']]
+    n_states = len(S)
+    n_actions = len(A)
+
+    V = np.zeros((n_states, C_max + 1))
+    V_risk_C = np.zeros((n_states, C_max + 2))
+    P = np.zeros((n_states, C_max + 2))
+    pi = np.full((n_states, C_max + 2), None)
+
+    #print(n_states, C_max)
+    #print('V_risk:', V_risk)
+    # print(V_risk_C.shape)
+    # print(G)
+    #V_risk_C[G, :] = k_g
+    V_risk_C[G, :] = V_risk[G]
+    P[G, :] = 1
+    # print('V_risk_C antes antes:', V_risk_C)
+    V_risk_C[:, C_max + 1] = V_risk.T
+    # print('V_risk_C antes:', V_risk_C)
+    P[:, C_max + 1] = P_risk.T
+    pi[:, C_max + 1] = pi_risk.T
+
+    n_updates = 0
+    # print(V_risk)
+    for C in reversed(range(C_max + 1)):
+        #print(f'C = {C}')
+        Q = np.zeros(n_actions)
+        P_a = np.zeros(n_actions)
+        for s in S:
+            i_s = V_i[s]
+            n_updates += 1
+            for i_a, a in enumerate(A):
+                c__ = 0 if mdp_obj[s]['goal'] else c
+                c_ = C + c__
+                reachable = mdp.find_reachable(s, a, mdp_obj)
+
+                # Get value
+                gen_q = [s_['A'][a] * V_risk_C[V_i[s_['name']], c_]
+                         for s_ in reachable]
+                #print(' gen_q:', gen_q, lamb, c__)
+                Q[i_a] = u(lamb, c__) * \
+                    np.sum(np.fromiter(gen_q, dtype=np.float))
+
+                # Get probability
+                gen_p = (s_['A'][a] * P[V_i[s_['name']], c_]
+                         for s_ in reachable)
+                P_a[i_a] = np.sum(
+                    np.fromiter(gen_p, dtype=np.float)
+                )
+                # if s == '3':
+                #print(C, s, P_a[i_a], Q[i_a], c_)
+
+                #print(s, C)
+            i_a_opt = np.argmax(u(lamb, C) * Q + k_g * P_a)
+            a_opt = A[i_a_opt]
+            #print('Q:', Q)
+            #print('argmax:', u(lamb, C) * Q + k_g * P_a, i_a_opt, a_opt, A)
+            pi[i_s, C] = a_opt
+
+            P[i_s, C] = P_a[i_a_opt]
+            V_risk_C[i_s, C] = Q[i_a_opt]
+            #print('P:', P[i_s, C])
+            #print('V_risk:', V_risk)
+            #print('V_risk_C:', V_risk_C)
+            ##print("Q: ", Q)
+            # print(
+            #    f'{i_s}, {C}, {V_risk_C[i_s, C]}, {V_risk_C[i_s]}, {P[i_s, C]}')
+            V[i_s, C] = V_risk_C[i_s, C] + k_g * P[i_s, C]
+            # print('  result:', V_risk_C[i_s, C], k_g * P[i_s, C],
+            #      V_risk_C[i_s, C] + k_g * P[i_s, C], V[i_s, C])
+
+    print("Updates:", n_updates)
+    return V, P, pi
